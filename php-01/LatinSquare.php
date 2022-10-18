@@ -14,26 +14,76 @@ use Exception;
  */
 class LatinSquare
 {
-    protected $gridString = null;
-    protected $width = 5;
-    protected $height = 5;
+    protected string $gridString;
+    protected int $width = 5;
+    protected int $height = 5;
 
     public function isValidDimensions()
     {
         // TODO: Check that the width and height are equal and that they match the length of the grid string
+
+        if ($this->width === $this->height && sqrt(strlen($this->gridString)) == $this->width) {
+            return true;
+        }
+
         return false;
     }
 
     public function isValidRowValues()
     {
         // TODO Check that each row contains numbers in the range 1 to width
-        return false;
+        $rowData = str_split($this->gridString, $this->width);
+
+        foreach ($rowData as $row) {
+            $unique_chars_in_string =
+                count( // counts Unique elements in the string
+                    array_unique( // returns unique chars in the string
+                        str_split($row)  // splits the string
+                    )
+                );
+
+            if (!$unique_chars_in_string == strlen($row)) {
+                // row with duplicated chars (numbers)";
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function isValidColValues()
     {
         // TODO: Check that each column contains numbers in the range 1 to height
-        return false;
+
+
+        // Split the string into an array of characters
+        $array = str_split($this->gridString);
+
+        // Create a multidimensional array
+        $rows = array_chunk($array, $this->height);
+
+        for ($i = 0; $i < $this->height; $i++) {
+            $column = [];
+            for ($j = 0; $j < $this->height; $j++) {
+                //checks if value is within the range of 1 to height
+                if ($this->isNotBetweenRange($rows[$j][$i])) {
+                    return false;
+                }
+                $column[] = $rows[$j][$i];
+            }
+            // compares the size of the column with the size of the column without duplicates
+            if (count($column) != count(array_unique($column))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function isNotBetweenRange($rows): bool
+    {
+        //checks if value is within the range of 1 to height
+        return !(1 <= $rows && $rows <= $this->height);
     }
 
     public function isValid()
@@ -65,16 +115,18 @@ class LatinSquare
 
     public function asArray()
     {
-        return array_map(function($row) {return str_split($row); }, str_split($this->gridString, $this->width));
+        return array_map(function ($row) {
+            return str_split($row);
+        }, str_split($this->gridString, $this->width));
     }
 
     public function print($checkIsValid = false)
     {
         $str = implode(' ', str_split($this->gridString));
-        echo implode("\n", str_split($str, $this->width * 2)). "\n";
+        echo implode("\n", str_split($str, $this->width * 2))."\n";
 
         if ($checkIsValid) {
-            echo ($this->isValid() ? 'VALID' : 'INVALID') . "\n";
+            echo ($this->isValid() ? 'VALID' : 'INVALID')."\n";
         }
         echo "\n";
 
@@ -88,7 +140,7 @@ class LatinSquare
         $this->gridString = null;
 
         $maxRetries = 1000;
-        for ($retries = $maxRetries; ($this->gridString === null)  && ($retries > 0); $retries--) {
+        for ($retries = $maxRetries; ($this->gridString === null) && ($retries > 0); $retries--) {
             $this->gridString = $this->generateGrid();
         }
 
@@ -98,12 +150,13 @@ class LatinSquare
     public function useGridString(string $gridString)
     {
         $this->gridString = $gridString;
+
         return $this->setGridSize(intval(sqrt(strlen($this->gridString))));
     }
 
     private function setGridSize(int $size)
     {
-        $this->width = $size;
+        $this->width  = $size;
         $this->height = $this->width;
 
         if ($this->width > 9) {
@@ -112,6 +165,7 @@ class LatinSquare
 
         return $this;
     }
+
 
     private function getValidCellValueKey(int $row, int $col, array $values)
     {
@@ -136,9 +190,9 @@ class LatinSquare
 
                 if (count($cell) > 0) {
                     // Select a value for the cell and set it in the grid
-                    $value = $cell[array_rand($cell)];
+                    $value                                    = $cell[array_rand($cell)];
                     $gridString[($row * $this->width) + $col] = $value;
-                    $grid[$row][$col] = null;
+                    $grid[$row][$col]                         = null;
 
                     // Remove this value from the other cells in the same row and column
                     $grid = $this->removeValueFromRowAndCol($grid, $value, $row, $col);
